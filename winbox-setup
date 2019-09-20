@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /bin/bash
 # Winbox Installer
 # What this script does:
 #   1. Downloading wine, wget and unzip, if not installed on the system
@@ -7,7 +7,7 @@
 #   4. Copying icons to /usr/share/icons/hicolor/*/apps
 #   5. Creating launcher for Winbox
 #
-# Wrritten by Mohammad Riza Nurtam <muhammadriza@gmail.com>
+# Written by Mohammad Riza Nurtam <muhammadriza@gmail.com>
 # version=0.3
 # winbox_version=3.11
 
@@ -25,17 +25,30 @@ sudo bash winbox-setup remove"
 # Installing dependencies
 depInst() {
   DISTRIBUTION=`sed "/^ID/s/ID=//gp" -n /etc/os-release`
-  echo -n "Installing dependencies..."
+  echo -n "Wine is not installed. Installing wine and dependencies..."
   case $DISTRIBUTION in
     'fedora' | '"rhel"' | '"centos"' | '"IGN"' )
       dnf -q -y install wine wget curl > /dev/null 2>&1 || yum -q -y install wine wget curl > /dev/null 2>&1
       echo "DONE"
     ;;
     'ubuntu' | 'debian' | '"elementary"' | 'zorin' | 'linuxmint' | 'kali' )
-      apt-get -q -y install wine wget curl > /dev/null 2>&1
+      if [ -f /etc/os-release ]
+      then
+        source /etc/os-release
+      fi
+
+      if [ $(echo $VERSION_ID | awk '{printf "%1.0f",$1}') -ge 18 ]
+      then
+        WINEPKG="wine-stable"
+      else
+        WINEPKG="wine"
+      fi
+      apt-get -q -y install $WINEPKG wget curl > /dev/null 2>&1
       echo "DONE"
     ;;
     'arch' )
+      sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
+      pacman -Sy
       pacman -Sq --noconfirm wine wget curl > /dev/null 2>&1
       echo "DONE"
     ;;
